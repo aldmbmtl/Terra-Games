@@ -140,12 +140,14 @@ Run `make new-plugin` from inside the shell.
 ## Adding a New Game Plugin — Checklist
 
 1. Check the official catalog for collisions; verify the game image exists and its license permits
-   self-hosting (flag non-free images in the README)
+   self-hosting (flag non-free images in the README); **verify image architectures** (Docker Hub
+   tag → architectures / OCI manifest) — single-arch images get
+   `nodeSelector: {kubernetes.io/arch: <arch>}` in `scripts/chart/values.yaml`
 2. `make new-plugin` — prompts for the name, copies `template/`, packages scripts
 3. Edit `terra.yaml` — `resource_id`, `name`, `icon`, `description`, `category: Games`, game tags
    + `cluster-level`
 4. Edit `templates/metadata.yaml` — description, `fields:` schema (common set: icon/registry/repo/
-   tag/cpu/memory/cpuLimit/memoryLimit/gpu/publicAccess/storage_class/storage_size + game-specific
+   tag/cpu/memory/cpuLimit/memoryLimit/publicAccess/storage_class/storage_size + game-specific
    fields), `env_hints`
 5. Edit `scripts/chart/values.yaml` + chart templates — image, `gamePort`/`gameProtocol`,
    `extraPorts`, env (all `| quote`), probes (UDP-safe), PVC mounts + subPaths, grace period;

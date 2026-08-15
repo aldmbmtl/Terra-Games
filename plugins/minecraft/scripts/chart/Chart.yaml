@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Minecraft Server (Java) workload template
+name: minecraft
+version: 0.0.3

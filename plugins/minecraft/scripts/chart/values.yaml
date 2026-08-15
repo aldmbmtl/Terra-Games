@@ -1,0 +1,56 @@
+# These values are populated by Kuiper at workload launch time from the
+# fields defined in templates/metadata.yaml. They must match field names
+# exactly (dual-defaults parity: metadata defaults override these).
+name: minecraft
+user:
+registry: docker.io
+repo: itzg/minecraft-server
+tag: latest
+group:
+cpu: "1"
+memory: "1Gi"
+cpuLimit: ""
+memoryLimit: "4Gi"
+# Kuiper-consumed contract key — not rendered by this chart (no ingress).
+publicAccess: false
+idx: 0
+guid: 0
+puid: 0
+host:
+pullSecret:
+session:
+volumeMounts: []
+volumes: []
+env: []
+plugins: []
+_kuiper:
+
+# --- game server settings ---
+
+serviceType: NodePort
+
+# Graceful shutdown — allow the world save to complete
+terminationGracePeriodSeconds: 60
+
+gamePort: 25565
+gameProtocol: TCP
+
+# RCON is NOT in extraPorts — it is rendered conditionally (only when
+# rcon_enabled) in both server.yaml and service.yaml, so a dead node port
+# is never allocated for a disabled RCON server.
+extraPorts: []
+
+# --- launch-time field defaults (mirror metadata.yaml) ---
+
+eula_accept: "FALSE"
+server_type: "VANILLA"
+version: "latest"
+jvm_memory: "2G"
+difficulty: "normal"
+max_players: 20
+rcon_enabled: false
+rcon_password: ""
+
+# World storage — chart-rendered PVC (metadata fields)
+storage_class: ""
+storage_size: 10

@@ -51,5 +51,9 @@ the chart in `scripts/chart/` at launch time).
 - World/save storage: the chart renders a PVC from `storage_class`
   (k8sStorageClass field, required) + `storage_size` (Gi); mount it at the
   game's data path with the right subPath layout
+- **Verify the game image's architectures** (Docker Hub tag → architectures, or
+  inspect the OCI manifest) — single-arch images get
+  `nodeSelector: {kubernetes.io/arch: <arch>}` in `scripts/chart/values.yaml`
+  (default `{}` = no pinning, e.g. multi-arch images schedule anywhere)
 - Sensitive fields (passwords): mark `sensitive: true` in metadata, render
   via `secret.yaml` + `secretKeyRef` — never as plain env values

@@ -1,0 +1,69 @@
+# These values are populated by Kuiper at workload launch time from the
+# fields defined in templates/metadata.yaml. They must match field names
+# exactly (dual-defaults parity: metadata defaults override these).
+name: valheim
+user:
+registry: docker.io
+repo: indifferentbroccoli/valheim-server-docker
+tag: latest
+group:
+cpu: "2"
+memory: "4Gi"
+cpuLimit: ""
+memoryLimit: ""
+# Kuiper-consumed contract key — not rendered by this chart (no ingress).
+publicAccess: false
+idx: 0
+guid: 0
+puid: 1000
+host:
+pullSecret:
+session:
+volumeMounts: []
+volumes: []
+env: []
+plugins: []
+_kuiper:
+
+# --- game server settings ---
+
+serviceType: NodePort
+
+# Graceful shutdown — Valheim saves the world on SIGTERM; keep 30s
+terminationGracePeriodSeconds: 30
+
+# Valheim uses PORT and PORT+1; the third UDP port (2458) carries extra
+# connections. All three always exposed.
+gamePort: 2456
+gameProtocol: UDP
+
+extraPorts:
+  - name: game2
+    port: 2457
+    protocol: UDP
+  - name: game3
+    port: 2458
+    protocol: UDP
+
+# Sub-paths on the game data PVC:
+#   worlds_subpath → /valheim-saves (world data)
+#   files_subpath  → /valheim (server binaries, recreated on reinstall)
+worlds_subpath: "valheim"
+files_subpath: "valheim-files"
+
+# --- launch-time field defaults (mirror metadata.yaml) ---
+
+server_name: "valheim"
+server_password: ""
+world_name: "dedicated"
+public: true
+crossplay_enabled: true
+
+# Node pinning — the image is amd64-ONLY (its OCI index's second entry is
+# an in-toto attestation, not an arm64 build). Pods must land on amd64 nodes.
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+# World storage — chart-rendered PVC (metadata fields)
+storage_class: ""
+storage_size: 10

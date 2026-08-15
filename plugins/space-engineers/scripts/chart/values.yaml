@@ -1,0 +1,58 @@
+# These values are populated by Kuiper at workload launch time from the
+# fields defined in templates/metadata.yaml. They must match field names
+# exactly (dual-defaults parity: metadata defaults override these).
+name: space-engineers
+user:
+registry: docker.io
+repo: devidian/spaceengineers
+tag: latest
+group:
+cpu: "2"
+memory: "4Gi"
+cpuLimit: ""
+memoryLimit: "8Gi"
+# Kuiper-consumed contract key — not rendered by this chart (no ingress).
+publicAccess: false
+idx: 0
+guid: 0
+puid: 0
+host:
+pullSecret:
+session:
+volumeMounts: []
+volumes: []
+env: []
+plugins: []
+_kuiper:
+
+# --- game server settings ---
+
+serviceType: NodePort
+
+# Graceful shutdown — the server saves the world when stopped cleanly
+terminationGracePeriodSeconds: 60
+
+gamePort: 27016
+gameProtocol: UDP
+
+extraPorts: []
+
+# Sub-paths on the game data PVC — mirror the image's /appdata layout
+instances_subpath: "space-engineers/instances"
+plugins_subpath: "space-engineers/plugins"
+dedicated_subpath: "space-engineers/SpaceEngineersDedicated"
+steam_subpath: "space-engineers/steam"
+
+# --- launch-time field defaults (mirror metadata.yaml) ---
+
+instance_name: "instance"
+public_ip: ""
+
+# Node pinning — the wine-based image is amd64-ONLY (latest and winestaging
+# are single-arch manifests). Pods must land on amd64 nodes.
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+# World storage — chart-rendered PVC (metadata fields)
+storage_class: ""
+storage_size: 20

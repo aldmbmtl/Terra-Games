@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Values.name }}"
+  annotations:
+    juno-innovations.com/workload: "Server"
+  labels:
+    app: "{{ .Values.name }}"
+spec:
+  replicas: 1
+  serviceName: "{{ .Values.name }}"
+  selector:
+    matchLabels:
+      app: "{{ .Values.name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.name }}"
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      automountServiceAccountToken: false
+      hostname: "{{ .Values.name }}"
+      {{- if .Values.pullSecret }}
+      imagePullSecrets:
+        - name: "{{ .Values.pullSecret }}"
+      {{- end }}
+
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: space-engineers
+          imagePullPolicy: IfNotPresent
+          image: "{{ .Values.registry }}/{{ .Values.repo }}:{{ .Values.tag }}"
+          ports:
+            - containerPort: {{ .Values.gamePort }}
+              name: game
+              protocol: {{ .Values.gameProtocol }}
+            {{- range .Values.extraPorts }}
+            - containerPort: {{ .port }}
+              name: {{ .name }}
+              protocol: {{ .protocol | default "TCP" }}
+            {{- end }}
+          env:
+            - name: JUNO_WORKSTATION
+              value: "{{ .Values.name }}"
+            - name: JUNO_PROJECT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JUNO_WORKSPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JUNO_ENVIRONMENT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: USER
+              value: "{{ .Values.user }}"
+            - name: HOME
+              value: "/home/{{ .Values.user }}"
+            - name: UID
+              value: "{{ .Values.puid }}"
+            - name: GID
+              value: "{{ .Values.guid }}"
+            - name: INSTANCE_NAME
+              value: {{ .Values.instance_name | quote }}
+            - name: PUBLIC_IP
+              value: {{ .Values.public_ip | quote }}
+            - name: WINEDEBUG
+              value: "-all"
+            {{- range .Values.env }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+          # No probes: wine-based server, UDP-only, slow first boot
+          # (SteamCMD install). The image's healthcheck needs PUBLIC_IP and
+          # is not used by Kubernetes — the StatefulSet restart policy
+          # recovers crashes.
+          resources:
+            requests:
+              cpu: "{{ .Values.cpu }}"
+              memory: "{{ .Values.memory }}"
+            {{- if or .Values.cpuLimit .Values.memoryLimit }}
+            limits:
+              {{- if .Values.cpuLimit }}
+              cpu: "{{ .Values.cpuLimit }}"
+              {{- end }}
+              {{- if .Values.memoryLimit }}
+              memory: "{{ .Values.memoryLimit }}"
+              {{- end }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: shm
+            - name: data
+              mountPath: /appdata/space-engineers/instances
+              subPath: {{ .Values.instances_subpath }}
+            - name: data
+              mountPath: /appdata/space-engineers/plugins
+              subPath: {{ .Values.plugins_subpath }}
+            - name: data
+              mountPath: /appdata/space-engineers/SpaceEngineersDedicated
+              subPath: {{ .Values.dedicated_subpath }}
+            - name: data
+              mountPath: /root/.steam
+              subPath: {{ .Values.steam_subpath }}
+            {{- if .Values.volumeMounts }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- end }}
+            {{- if .Values.plugins }}
+            {{- range .Values.plugins }}
+            - name: {{ .name | quote }}
+              subPath: {{ .file | quote }}
+              mountPath: "/etc/helios/init.d/{{ .name }}/{{ .file }}"
+            {{- end }}
+            {{- end }}
+      {{- if .Values.volumeMounts }}
+      securityContext:
+        fsGroup: 1000
+      {{- end }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: "{{ .Values.name }}-data"
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+        {{- if .Values.volumeMounts }}
+        {{- toYaml .Values.volumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.plugins }}
+        {{- range .Values.plugins }}
+        - name: {{ .name | quote }}
+          configMap:
+            name: {{ .config | quote }}
+            defaultMode: 0777
+        {{- end }}
+        {{- end }}

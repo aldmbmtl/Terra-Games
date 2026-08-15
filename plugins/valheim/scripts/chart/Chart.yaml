@@ -1,0 +1,4 @@
+apiVersion: v1
+description: Valheim Server workload template
+name: valheim
+version: 0.0.4
