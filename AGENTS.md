@@ -124,6 +124,15 @@ Run `make new-plugin` from inside the shell.
 - **Graceful shutdown matters** — world saves happen on SIGTERM. Set
   `terminationGracePeriodSeconds` per game (Minecraft/SE 60s, Valheim 30s); never shorten below
   the game's save window.
+- **`terminationGracePeriodSeconds` is a pod-spec field** — it belongs under
+  `.spec.template.spec.`, NOT on the StatefulSet `spec:` level (no such field there). `helm lint`
+  and `helm template` do NOT schema-validate against the Kubernetes API — this class of error
+  surfaces only at apply time (observed: Kuiper 500 `field not declared in schema`).
+- **Kuiper emits select option values unquoted** — YAML 1.1 parses `TRUE/FALSE/yes/no/on/off`
+  tokens as booleans, so string-only filters (`upper`, `lower`, …) crash with `wrong type for
+  value; expected string; got bool`. Options in the metadata schema are quoted strings — the bool
+  appears at render time, not in the schema. Use `| toString` before string filters, or pick
+  non-boolean option tokens.
 - **Ingress never hosts game ports** — if a future game ships an HTTP dashboard AND game traffic,
   the dashboard would get its own ingress; the game ports still go through the
   NodePort/LoadBalancer Service. Two different mechanisms, never mixed in one resource.
