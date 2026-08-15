@@ -1,0 +1,130 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-terra-metadata"
+  labels:
+    kuiper.juno-innovations.com/chart: "{{ .Release.Name }}-scripts-configmap"
+  annotations:
+    juno-innovations.com/workload: "Server"
+data:
+  chart: "{{ .Release.Name }}-scripts-configmap"
+  description: "Minecraft Java Edition server (itzg/minecraft-server) — vanilla, Paper, Forge, Fabric, Spigot or Bukkit, auto-installs on first boot."
+  fields: |
+    - name: icon
+      default: "https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/minecraft/assets/logo.png"
+    - name: registry
+      description: "Container registry"
+      type: string
+      required: true
+      default: "docker.io"
+    - name: repo
+      description: "Image repository"
+      type: string
+      required: true
+      default: "itzg/minecraft-server"
+    - name: tag
+      description: "Image tag"
+      type: string
+      required: true
+      default: "latest"
+    - name: eula_accept
+      description: "Accept the Minecraft End User License Agreement (EULA) — required by Mojang to run the server"
+      type: select
+      options:
+        - "FALSE"
+        - "TRUE"
+      required: true
+      default: "FALSE"
+    - name: server_type
+      description: "Server distribution — VANILLA, PAPER, FORGE, FABRIC, SPIGOT, BUKKIT"
+      type: select
+      options:
+        - VANILLA
+        - PAPER
+        - FORGE
+        - FABRIC
+        - SPIGOT
+        - BUKKIT
+      required: true
+      default: "VANILLA"
+    - name: version
+      description: "Minecraft version (e.g. 1.21.4) or latest"
+      type: string
+      required: false
+      default: "latest"
+    - name: jvm_memory
+      description: "JVM heap allocation (e.g. 2G, 4096M) — keep below the pod memory request"
+      type: string
+      required: false
+      default: "2G"
+    - name: difficulty
+      description: "World difficulty"
+      type: select
+      options:
+        - peaceful
+        - easy
+        - normal
+        - hard
+      required: true
+      default: "normal"
+    - name: max_players
+      description: "Maximum number of players"
+      type: int
+      required: false
+      default: 20
+    - name: rcon_enabled
+      description: "Enable RCON remote administration (exposes TCP port 25575)"
+      type: boolean
+      required: false
+      default: false
+    - name: rcon_password
+      description: "RCON password (only used when RCON is enabled)"
+      type: string
+      required: false
+      sensitive: true
+    - name: cpu
+      description: "CPU cores (request)"
+      type: string
+      required: false
+      default: "1"
+    - name: memory
+      description: "Memory request"
+      type: string
+      required: false
+      default: "1Gi"
+    - name: cpuLimit
+      description: "CPU limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: memoryLimit
+      description: "Memory limit (default 4Gi)"
+      type: string
+      required: false
+      default: "4Gi"
+    - name: gpu
+      description: "Attach a GPU to this workload"
+      type: boolean
+      required: false
+      default: false
+    - name: publicAccess
+      description: "Allow public access (disable authentication)"
+      type: boolean
+      required: false
+      default: false
+    - name: storage_class
+      description: "StorageClass for the world volume (required)."
+      type: k8sStorageClass
+      required: true
+    - name: storage_size
+      description: "World volume size in Gi."
+      type: int
+      required: false
+      default: 10
+  env_hints: |
+    - name: MOTD
+      description: "Server message of the day shown in the server list"
+    - name: SEED
+      description: "World seed"
+    - name: OPS
+      description: "Comma-separated list of players granted operator"

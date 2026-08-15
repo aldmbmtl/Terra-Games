@@ -1,0 +1,14 @@
+resource_id:
+name: PLUGIN
+icon:
+description:
+category: Games
+tags:
+  - cluster-level
+# editable: true  # Uncomment to allow users to edit field values after install
+# compatibility: genesis-deployment>=3.0.2,orion-deployment>=3.1.0  # Optional: block install on older platform versions
+# This is a workload template: install-time fields stay empty — all user
+# configuration happens at launch time via the fields schema in
+# templates/metadata.yaml (shown in the Genesis workload UI, passed to
+# scripts/chart/ by Kuiper as Helm values).
+fields: []

@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-terra-metadata"
+  labels:
+    kuiper.juno-innovations.com/chart: "{{ .Release.Name }}-scripts-configmap"
+  annotations:
+    juno-innovations.com/workload: "Server"
+data:
+  chart: "{{ .Release.Name }}-scripts-configmap"
+  description: "Valheim dedicated server (indifferentbroccoli/valheim-server-docker) — SteamCMD auto-install, PlayFab crossplay."
+  fields: |
+    - name: icon
+      default: "https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/valheim/assets/logo.png"
+    - name: registry
+      description: "Container registry"
+      type: string
+      required: true
+      default: "docker.io"
+    - name: repo
+      description: "Image repository"
+      type: string
+      required: true
+      default: "indifferentbroccoli/valheim-server-docker"
+    - name: tag
+      description: "Image tag"
+      type: string
+      required: true
+      default: "latest"
+    - name: server_name
+      description: "Server name shown in the server list"
+      type: string
+      required: true
+      default: "valheim"
+    - name: server_password
+      description: "Server password shared with players (stored in a Secret)"
+      type: string
+      required: true
+      sensitive: true
+    - name: world_name
+      description: "World name — creates a new world or loads an existing one"
+      type: string
+      required: true
+      default: "dedicated"
+    - name: public
+      description: "Visible in the server browser (false = join by IP only)"
+      type: boolean
+      required: false
+      default: true
+    - name: crossplay_enabled
+      description: "Run on the PlayFab crossplay backend (players from any platform can join)"
+      type: boolean
+      required: false
+      default: true
+    - name: cpu
+      description: "CPU cores (request)"
+      type: string
+      required: false
+      default: "2"
+    - name: memory
+      description: "Memory request (raise for large worlds)"
+      type: string
+      required: false
+      default: "4Gi"
+    - name: cpuLimit
+      description: "CPU limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: memoryLimit
+      description: "Memory limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: gpu
+      description: "Attach a GPU to this workload"
+      type: boolean
+      required: false
+      default: false
+    - name: publicAccess
+      description: "Allow public access (disable authentication)"
+      type: boolean
+      required: false
+      default: false
+    - name: storage_class
+      description: "StorageClass for the world volume (required)."
+      type: k8sStorageClass
+      required: true
+    - name: storage_size
+      description: "World volume size in Gi."
+      type: int
+      required: false
+      default: 10
+  env_hints: |
+    - name: SAVE_INTERVAL
+      description: "How often the world saves in seconds (default 1800)"
+    - name: SERVER_PRESET
+      description: "World modifier preset: Normal, Casual, Easy, Hard, Hardcore, Immersive, Hammer"
+    - name: BEPINEX_ENABLED
+      description: "Enable BepInEx modding"

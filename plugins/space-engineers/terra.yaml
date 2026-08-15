@@ -1,0 +1,13 @@
+resource_id: space-engineers
+name: Space Engineers Server
+icon: https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/space-engineers/assets/logo.png
+description: Space Engineers dedicated server workload (Devidian image) — the Windows server running under Wine on Debian.
+category: Games
+tags:
+  - space-engineers
+  - voxel
+  - survival
+  - cluster-level
+# Workload template — all configuration happens at launch time via the
+# fields schema in templates/metadata.yaml (Genesis workload UI → Kuiper).
+fields: []

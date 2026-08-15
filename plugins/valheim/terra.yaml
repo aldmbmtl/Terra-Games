@@ -1,0 +1,13 @@
+resource_id: valheim
+name: Valheim Server
+icon: https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/valheim/assets/logo.png
+description: Valheim dedicated server workload (indifferentbroccoli/valheim-server-docker) — auto-installs via SteamCMD, PlayFab crossplay support.
+category: Games
+tags:
+  - valheim
+  - viking
+  - survival
+  - cluster-level
+# Workload template — all configuration happens at launch time via the
+# fields schema in templates/metadata.yaml (Genesis workload UI → Kuiper).
+fields: []
