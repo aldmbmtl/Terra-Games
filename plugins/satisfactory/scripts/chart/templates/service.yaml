@@ -5,22 +5,13 @@
 # Do NOT add an ingress for the game traffic itself — nginx ingress is
 # HTTP/HTTPS only and cannot proxy raw game packets.
 #
-# NodePort pair derivation: the Satisfactory client derives the reliable
-# channel at entered-port + 1, so game (7777, UDP+TCP) and reliable (7778,
-# TCP) MUST be pinned to an adjacent pair (N / N+1) — k8s would otherwise
-# allocate random, unrelated nodePorts and the reliable connection would
-# miss. The pair is derived deterministically from the instance name
-# (stable across ArgoCD syncs / Kuiper re-renders): the sha256 hex's
-# decimal digit-runs are summed and folded into the node-port range.
-# no user override — always auto-derived from the instance name.
-# mod 2767 keeps the game nodePort in 30000..32766 so +1 never overflows.
-# The game port's UDP and TCP entries SHARE nodePort N (protocols
-# distinguish them); extraPorts get N+1, N+2, ... in order.
-{{- $sum := 0 -}}
-{{- range $i, $run := regexFindAll "[0-9]+" (sha256sum .Release.Name) -1 -}}
-{{- $sum = add $sum (int $run) -}}
-{{- end -}}
-{{- $autoNP := add 30000 (mod $sum 2767) }}
+# Satisfactory listens on its DERIVED nodePorts (see _helpers.tpl and the
+# GAME_PORT/RELIABLE_PORT envs in server.yaml): the server's announced
+# ports are always the reachable ones, so the client's reliable channel
+# resolves correctly whether it derives entered+1 or uses the announced
+# value. Service port == nodePort == what the pod binds. Game (UDP+TCP)
+# shares port N; the reliable channel is N+1. No user override — always
+# auto-derived from the instance name.
 apiVersion: v1
 kind: Service
 metadata:
@@ -31,19 +22,17 @@ spec:
     app: "{{ .Values.name }}"
   ports:
     - name: game-udp
-      port: {{ .Values.gamePort }}
+      port: {{ include "satisfactory.nodeport" . }}
       targetPort: game-udp
       protocol: UDP
-      nodePort: {{ $autoNP }}
+      nodePort: {{ include "satisfactory.nodeport" . }}
     - name: game-tcp
-      port: {{ .Values.gamePort }}
+      port: {{ include "satisfactory.nodeport" . }}
       targetPort: game-tcp
       protocol: TCP
-      nodePort: {{ $autoNP }}
-    {{- range $i, $ep := .Values.extraPorts }}
-    - name: {{ $ep.name }}
-      port: {{ $ep.port }}
-      targetPort: {{ $ep.port }}
-      protocol: {{ $ep.protocol | default "TCP" }}
-      nodePort: {{ add $autoNP (add 1 $i) }}
-    {{- end }}
+      nodePort: {{ include "satisfactory.nodeport" . }}
+    - name: reliable
+      port: {{ add (int (include "satisfactory.nodeport" .)) 1 }}
+      targetPort: reliable
+      protocol: TCP
+      nodePort: {{ add (int (include "satisfactory.nodeport" .)) 1 }}

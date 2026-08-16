@@ -40,17 +40,15 @@ spec:
           imagePullPolicy: IfNotPresent
           image: "{{ .Values.registry }}/{{ .Values.repo }}:{{ .Values.tag }}"
           ports:
-            - containerPort: {{ .Values.gamePort }}
+            - containerPort: {{ include "satisfactory.nodeport" . }}
               name: game-udp
               protocol: UDP
-            - containerPort: {{ .Values.gamePort }}
+            - containerPort: {{ include "satisfactory.nodeport" . }}
               name: game-tcp
               protocol: TCP
-            {{- range .Values.extraPorts }}
-            - containerPort: {{ .port }}
-              name: {{ .name }}
-              protocol: {{ .protocol | default "TCP" }}
-            {{- end }}
+            - containerPort: {{ add (int (include "satisfactory.nodeport" .)) 1 }}
+              name: reliable
+              protocol: TCP
           env:
             - name: JUNO_WORKSTATION
               value: "{{ .Values.name }}"
@@ -74,10 +72,14 @@ spec:
               value: "{{ .Values.puid }}"
             - name: GID
               value: "{{ .Values.guid }}"
+            # The server LISTENS on its auto-derived nodePorts (see
+            # _helpers.tpl) — its announced ports are always the reachable
+            # ones, so the client's reliable channel resolves whether it
+            # derives entered+1 or uses the announced value.
             - name: GAME_PORT
-              value: {{ .Values.gamePort | quote }}
+              value: {{ include "satisfactory.nodeport" . | quote }}
             - name: RELIABLE_PORT
-              value: "7778"
+              value: {{ add (int (include "satisfactory.nodeport" .)) 1 | quote }}
             - name: MAX_PLAYERS
               value: {{ .Values.max_players | quote }}
             - name: BRANCH
@@ -122,18 +124,19 @@ spec:
             - name: {{ .name | quote }}
               value: {{ .value | quote }}
             {{- end }}
-          # Game port listens on TCP too (Satisfactory uses UDP+TCP on 7777)
-          # — a real tcpSocket probe target. First boot runs DepotDownloader
-          # (large download): 10-minute startup budget.
+          # Game port listens on TCP too (Satisfactory uses UDP+TCP on the
+          # same port) — a real tcpSocket probe target against the derived
+          # port the server binds. First boot runs DepotDownloader (large
+          # download): 10-minute startup budget.
           startupProbe:
             tcpSocket:
-              port: {{ .Values.gamePort }}
+              port: {{ include "satisfactory.nodeport" . }}
             initialDelaySeconds: 10
             failureThreshold: 120
             periodSeconds: 5
           livenessProbe:
             tcpSocket:
-              port: {{ .Values.gamePort }}
+              port: {{ include "satisfactory.nodeport" . }}
             failureThreshold: 6
             periodSeconds: 30
           resources:

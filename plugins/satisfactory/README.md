@@ -18,14 +18,15 @@ users launch instances through Hubble.
 
 ## Ports
 
-| Port | Protocol | Purpose | Exposed |
-|------|----------|---------|---------|
-| 7777 | UDP + TCP | Game traffic (`GAME_PORT`) — join endpoint | **Always** (both protocols) |
-| 7778 | TCP | Reliable channel (`RELIABLE_PORT`) — the client derives it at **entered-port + 1** | **Always** |
+| Port | Protocol | Purpose |
+|------|----------|---------|
+| N (auto-derived) | UDP + TCP | Game traffic (`GAME_PORT`) — join endpoint |
+| N+1 (auto-derived) | TCP | Reliable channel (`RELIABLE_PORT`) |
 
-The game port's UDP and TCP entries share one nodePort (N); the reliable port gets N+1 — the
-chart pins the **adjacent pair** automatically, because the client's +1 derivation would miss a
-randomly-allocated reliable nodePort. Join = `<host-ip>:<N>`, reliable channel answers at N+1.
+The server **listens on its auto-derived nodePorts** — the env `GAME_PORT`/`RELIABLE_PORT` are
+rendered from the derived pair, so the server's announced ports are always the reachable ones.
+This is immune to whether the client derives the reliable channel as entered+1 or uses the
+announced value. Join = `<host-ip>:<N>`, reliable channel answers at N+1.
 
 ## Connecting
 

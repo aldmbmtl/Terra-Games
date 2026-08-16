@@ -30,17 +30,10 @@ service_type: NodePort
 # Graceful shutdown — the image's term_handler saves on SIGTERM; keep 30s
 terminationGracePeriodSeconds: 30
 
-# Game port (UDP + TCP) + reliable port. The Satisfactory client derives
-# the reliable channel at entered-port + 1, so game and reliable MUST be
-# pinned to an adjacent nodePort pair (N / N+1) — see the template header
-# in service.yaml. The reliable port is exposed via extraPorts.
-gamePort: 7777
-gameProtocol: UDP
-
-extraPorts:
-  - name: reliable
-    port: 7778
-    protocol: TCP
+# Ports are NOT configured here: satisfactory listens on its auto-derived
+# nodePorts (game N UDP+TCP, reliable N+1 TCP) rendered from the instance
+# name — see _helpers.tpl and the GAME_PORT/RELIABLE_PORT envs in
+# server.yaml. Service port == nodePort == what the pod binds.
 
 # Node pinning — the image is amd64-ONLY (its OCI index's second entry is
 # an in-toto attestation, not an arm64 build). Pods must land on amd64 nodes.
