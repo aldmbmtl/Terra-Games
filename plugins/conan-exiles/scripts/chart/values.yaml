@@ -30,10 +30,12 @@ service_type: NodePort
 # Graceful shutdown — Conan saves on SIGTERM; keep 30s
 terminationGracePeriodSeconds: 30
 
-# Game port only — direct join uses this port's nodePort. The server also
-# binds PORT+1 (7778, pinger) and the query port 27015 in-container for the
-# Steam browser; those are browser-only and not exposed (advertised ports
-# never match NodePorts anyway).
+# Game port + pinger — the Conan client queries the pinger (PORT+1 = 7778)
+# before connecting, so the Service must carry both. With NodePort type, the
+# template derives an in-range adjacent pair from the instance name
+# (game = N, pinger = N+1) so the client's +1 query lands; game_nodeport
+# overrides the auto pair (0 = auto). The query port 27015 stays browser-only
+# and unexposed (advertised ports never match nodePorts anyway).
 gamePort: 7777
 gameProtocol: UDP
 
@@ -42,7 +44,10 @@ gameProtocol: UDP
 # a live launch). The Service/container port render only when rcon_password
 # is set, keeping the exposure gated and harmless when unset. Revisit if
 # upstream lands working RCON.
-extraPorts: []
+extraPorts:
+  - name: pinger
+    port: 7778
+    protocol: UDP
 
 # Node pinning — the image is amd64-ONLY (its OCI index's second entry is
 # an in-toto attestation, not an arm64 build). Pods must land on amd64 nodes.
@@ -61,6 +66,10 @@ rcon_password: ""
 max_players: 40
 mods: ""
 update_on_start: true
+
+# NodePort override for the game port (0 = auto-derive an adjacent pair
+# from the instance name; pinger = game + 1). Pick ≤ 32766 when overriding.
+game_nodeport: 0
 
 # World storage — chart-rendered PVC (metadata fields)
 storage_class: ""

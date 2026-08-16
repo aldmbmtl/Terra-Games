@@ -21,13 +21,14 @@ users launch instances through Hubble.
 | Port | Protocol | Purpose | Exposed |
 |------|----------|---------|---------|
 | 7777 | UDP | Game traffic (`PORT`) — join endpoint | **Always** |
-| 7778 | UDP | Pinger (`PORT` + 1) — server browser | No (browser-only) |
+| 7778 | UDP | Pinger (`PORT` + 1) — the client queries it before connecting | **Always** |
 | 27015 | UDP | Steam query (`QUERY_PORT`) — server browser | No (browser-only) |
 | 25575 | TCP | RCON (not observed listening in the Enhanced build) | **Only when `rcon_password` is set** |
 
-The browser-only ports (7778/27015) are deliberately unexposed: the Steam browser pings the
-server's *advertised* ports, which never match NodePort mappings — exposing them through the
-Service wouldn't help the browser anyway. Direct join goes through 7777's nodePort.
+The pinger (7778) must be exposed because the Conan client queries it at **entered-port + 1**
+before connecting — that's why the game + pinger are pinned to an adjacent nodePort pair (N/N+1).
+The Steam query port (27015) stays unexposed: the browser pings *advertised* ports, which never
+match NodePort mappings, so exposing it through the Service wouldn't help the browser anyway.
 
 **RCON is gated on a password**: the image writes `RconEnabled=1`, but the UE5 Enhanced build was
 observed NOT listening on 25575 in a live launch (connection refused) — RCON may not be available
@@ -36,12 +37,18 @@ exposed); revisit if upstream lands working RCON.
 
 ## Connecting
 
-- **Join**: in-game "Join IP" → `<host-ip>:<7777's nodePort>`. Find the nodePort:
-  `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[?(@.name=="game")].nodePort}'`
-  (or pick `LoadBalancer` service_type → `<lb-ip>:7777`)
-- **Server browser visibility**: needs the advertised ports reachable — use `LoadBalancer`
-  service_type (LB IP:7777/7778/27015 open) or hostPort; with plain NodePort the browser can't
-  reach the advertised ports (join-by-IP unaffected)
+- **Join (NodePort, default)**: in-game "Join IP" → `<host-ip>:<game nodePort>`. The chart
+  auto-derives an adjacent pair from the instance name (`game = N`, `pinger = N+1` — stable
+  across syncs), so the client's +1 pinger query lands. Find the pair:
+  `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[*].nodePort}'`
+  (e.g. `30500 30501` → join `192.168.70.25:30500`)
+- **NodePort override**: set `game_nodeport` at launch to pin a specific pair (≤ 32766; pinger
+  auto = +1). Useful when the auto-derived pair collides with an in-use port — k8s rejects the
+  apply with a clear error; rename the instance or override to recover
+- **Join (LoadBalancer)**: pick `service_type: LoadBalancer` (k3s svclb opens the ports on every
+  node IP) → join `<node-ip>:7777`, pinger auto-answers at 7778
+- **Server browser visibility**: needs advertised ports reachable — LoadBalancer or hostPort;
+  NodePort can't help the browser (advertised ports ≠ nodePorts), join-by-IP unaffected
 
 ## Launch Fields (Genesis workload authoring)
 
@@ -57,6 +64,7 @@ exposed); revisit if upstream lands working RCON.
 | `cpu` / `memory` | `2` / `8Gi` | UE5 server is heavy — 8GB min, 16GB recommended |
 | `cpuLimit` / `memoryLimit` | — / — | Pod limits (empty = none) |
 | `service_type` | `NodePort` | NodePort or LoadBalancer (needs MetalLB/cloud LB) |
+| `game_nodeport` | `0` | NodePort for the game port — `0` = auto-derive adjacent pair (pinger = +1); pick ≤ 32766 to pin |
 | `storage_class` | required | StorageClass for server files + saves |
 | `storage_size` | `50` | Volume size in Gi (25GB min, 50GB recommended) |
 

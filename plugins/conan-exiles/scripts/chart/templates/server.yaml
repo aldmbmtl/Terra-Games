@@ -43,6 +43,11 @@ spec:
             - containerPort: {{ .Values.gamePort }}
               name: game
               protocol: {{ .Values.gameProtocol }}
+            {{- range .Values.extraPorts }}
+            - containerPort: {{ .port }}
+              name: {{ .name }}
+              protocol: {{ .protocol | default "TCP" }}
+            {{- end }}
             {{- if .Values.rcon_password }}
             - containerPort: 25575
               name: rcon

@@ -4,6 +4,24 @@
 #       or a cloud load balancer. Choose at launch via the service_type field.
 # Do NOT add an ingress for the game traffic itself — nginx ingress is
 # HTTP/HTTPS only and cannot proxy raw game packets.
+#
+# NodePort pair derivation: the Conan client queries the pinger at
+# entered-port + 1, so game and pinger MUST be pinned to an adjacent pair
+# (N / N+1) — k8s would otherwise allocate random, unrelated nodePorts and
+# the pinger query would miss. The pair is derived deterministically from
+# the instance name (stable across ArgoCD syncs / Kuiper re-renders): the
+# sha256 hex's decimal digit-runs are summed and folded into the node-port
+# range. game_nodeport launch field pins the pair explicitly (0 = auto).
+# mod 2767 keeps the game nodePort in 30000..32766 so +1 never overflows.
+{{- $sum := 0 -}}
+{{- range $i, $run := regexFindAll "[0-9]+" (sha256sum .Release.Name) -1 -}}
+{{- $sum = add $sum (int $run) -}}
+{{- end -}}
+{{- $autoNP := add 30000 (mod $sum 2767) -}}
+{{- $gameNP := $autoNP -}}
+{{- if gt (int .Values.game_nodeport) 0 -}}
+{{- $gameNP = int .Values.game_nodeport -}}
+{{- end -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -17,6 +35,14 @@ spec:
       port: {{ .Values.gamePort }}
       targetPort: game
       protocol: {{ .Values.gameProtocol }}
+      nodePort: {{ $gameNP }}
+    {{- range $i, $ep := .Values.extraPorts }}
+    - name: {{ $ep.name }}
+      port: {{ $ep.port }}
+      targetPort: {{ $ep.port }}
+      protocol: {{ $ep.protocol | default "TCP" }}
+      nodePort: {{ add $gameNP (add 1 $i) }}
+    {{- end }}
     {{- if .Values.rcon_password }}
     - name: rcon
       port: 25575
