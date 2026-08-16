@@ -75,6 +75,11 @@ data:
         - LoadBalancer
       required: false
       default: "NodePort"
+    - name: game_nodeport
+      description: "NodePort for the game port (UDP) — 0 = auto-derive from the instance name (stable across syncs). Pick ≤ 32766 to pin."
+      type: int
+      required: false
+      default: 0
     - name: storage_class
       description: "StorageClass for the world volume (required)."
       type: k8sStorageClass

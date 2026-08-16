@@ -1,4 +1,4 @@
 apiVersion: v1
 description: Space Engineers Server workload template
 name: space-engineers
-version: 0.0.6
+version: 0.0.7

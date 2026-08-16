@@ -1,0 +1,13 @@
+resource_id: satisfactory
+name: Satisfactory Server
+icon: https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/satisfactory/assets/logo.png
+description: Satisfactory dedicated server workload (indifferentbroccoli image) — DepotDownloader auto-install, Steam backend, direct IP join.
+category: Games
+tags:
+  - satisfactory
+  - factory
+  - simulation
+  - cluster-level
+# Workload template — all configuration happens at launch time via the
+# fields schema in templates/metadata.yaml (Genesis workload UI → Kuiper).
+fields: []

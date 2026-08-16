@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-terra-metadata"
+  labels:
+    kuiper.juno-innovations.com/chart: "{{ .Release.Name }}-scripts-configmap"
+  annotations:
+    juno-innovations.com/workload: "Server"
+data:
+  chart: "{{ .Release.Name }}-scripts-configmap"
+  description: "Satisfactory dedicated server (indifferentbroccoli image) — DepotDownloader auto-install, non-crossplay (direct IP join)."
+  fields: |
+    - name: icon
+      default: "https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/satisfactory/assets/logo.png"
+    - name: registry
+      description: "Container registry"
+      type: string
+      required: true
+      default: "docker.io"
+    - name: repo
+      description: "Image repository"
+      type: string
+      required: true
+      default: "indifferentbroccoli/satisfactory-server-docker"
+    - name: tag
+      description: "Image tag"
+      type: string
+      required: true
+      default: "latest"
+    - name: max_players
+      description: "Maximum number of players"
+      type: int
+      required: false
+      default: 4
+    - name: branch
+      description: "Game branch — public (1.x stable) or experimental"
+      type: select
+      options:
+        - public
+        - experimental
+      required: true
+      default: "public"
+    - name: update_on_start
+      description: "Download/validate server files on startup (false = skip, faster boots)"
+      type: boolean
+      required: false
+      default: true
+    - name: auto_pause
+      description: "Auto-pause when no players are connected"
+      type: boolean
+      required: false
+      default: true
+    - name: auto_save_on_disconnect
+      description: "Auto-save when all players disconnect"
+      type: boolean
+      required: false
+      default: true
+    - name: game_manifest
+      description: "Pin a specific game version by SteamDB manifest ID (e.g. 1690800 depots) — requires Steam credentials; empty = latest"
+      type: string
+      required: false
+      default: ""
+    - name: steam_username
+      description: "Steam username (only used when game_manifest is set — stored in a Secret)"
+      type: string
+      required: false
+      sensitive: true
+    - name: steam_password
+      description: "Steam password (only used when game_manifest is set — stored in a Secret)"
+      type: string
+      required: false
+      sensitive: true
+    - name: cpu
+      description: "CPU cores (request)"
+      type: string
+      required: false
+      default: "2"
+    - name: memory
+      description: "Memory request — 12GB minimum, 16GB recommended"
+      type: string
+      required: false
+      default: "12Gi"
+    - name: cpuLimit
+      description: "CPU limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: memoryLimit
+      description: "Memory limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: service_type
+      description: "Service type — NodePort (high port on every node) or LoadBalancer (external IP via MetalLB/cloud LB)"
+      type: select
+      options:
+        - NodePort
+        - LoadBalancer
+      required: false
+      default: "NodePort"
+    - name: game_nodeport
+      description: "NodePort for the game port — 0 = auto-derive an adjacent pair (reliable = +1) from the instance name. Pick ≤ 32766 when overriding."
+      type: int
+      required: false
+      default: 0
+    - name: storage_class
+      description: "StorageClass for the server files + saves volume (required)."
+      type: k8sStorageClass
+      required: true
+    - name: storage_size
+      description: "Server volume size in Gi (25GB minimum)."
+      type: int
+      required: false
+      default: 25
+  env_hints: |
+    - name: BRANCH
+      description: "public (stable) or experimental"
+    - name: UPDATE_ON_START
+      description: "false skips file validation on startup (faster restarts)"
+    - name: GAME_MANIFEST
+      description: "Pin a SteamDB manifest ID for a specific game version (requires STEAM_USERNAME/STEAM_PASSWORD)"

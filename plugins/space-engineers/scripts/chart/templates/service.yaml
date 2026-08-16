@@ -4,6 +4,22 @@
 #       or a cloud load balancer. Choose at launch via the service_type field.
 # Do NOT add an ingress for the game traffic itself — nginx ingress is
 # HTTP/HTTPS only and cannot proxy raw game packets.
+#
+# NodePort derivation: deterministic from the instance name (stable across
+# ArgoCD syncs / Kuiper re-renders) so the join endpoint never churns. The
+# sha256 hex's decimal digit-runs are summed and folded into the node-port
+# range (30000..32766). game_nodeport launch field pins it explicitly
+# (0 = auto). Single-port variant — SE's join is plain IP:port; multi-port
+# games that query port+1 see conan-exiles.
+{{- $sum := 0 -}}
+{{- range $i, $run := regexFindAll "[0-9]+" (sha256sum .Release.Name) -1 -}}
+{{- $sum = add $sum (int $run) -}}
+{{- end -}}
+{{- $autoNP := add 30000 (mod $sum 2767) -}}
+{{- $gameNP := $autoNP -}}
+{{- if gt (int .Values.game_nodeport) 0 -}}
+{{- $gameNP = int .Values.game_nodeport -}}
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -17,6 +33,7 @@ spec:
       port: {{ .Values.gamePort }}
       targetPort: game
       protocol: {{ .Values.gameProtocol }}
+      nodePort: {{ $gameNP }}
     {{- range .Values.extraPorts }}
     - name: {{ .name }}
       port: {{ .port }}

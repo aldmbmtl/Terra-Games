@@ -1,0 +1,4 @@
+apiVersion: v1
+description: satisfactory workload template
+name: satisfactory
+version: 0.0.3

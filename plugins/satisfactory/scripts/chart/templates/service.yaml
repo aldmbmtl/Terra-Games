@@ -1,0 +1,53 @@
+# Game servers listen on TCP/UDP — the Service carries the traffic directly.
+# type: NodePort (default) exposes a high port on every node;
+#       LoadBalancer allocates an external IP when the cluster has MetalLB
+#       or a cloud load balancer. Choose at launch via the service_type field.
+# Do NOT add an ingress for the game traffic itself — nginx ingress is
+# HTTP/HTTPS only and cannot proxy raw game packets.
+#
+# NodePort pair derivation: the Satisfactory client derives the reliable
+# channel at entered-port + 1, so game (7777, UDP+TCP) and reliable (7778,
+# TCP) MUST be pinned to an adjacent pair (N / N+1) — k8s would otherwise
+# allocate random, unrelated nodePorts and the reliable connection would
+# miss. The pair is derived deterministically from the instance name
+# (stable across ArgoCD syncs / Kuiper re-renders): the sha256 hex's
+# decimal digit-runs are summed and folded into the node-port range.
+# game_nodeport launch field pins the pair explicitly (0 = auto).
+# mod 2767 keeps the game nodePort in 30000..32766 so +1 never overflows.
+# The game port's UDP and TCP entries SHARE nodePort N (protocols
+# distinguish them); extraPorts get N+1, N+2, ... in order.
+{{- $sum := 0 -}}
+{{- range $i, $run := regexFindAll "[0-9]+" (sha256sum .Release.Name) -1 -}}
+{{- $sum = add $sum (int $run) -}}
+{{- end -}}
+{{- $autoNP := add 30000 (mod $sum 2767) -}}
+{{- $gameNP := $autoNP -}}
+{{- if gt (int .Values.game_nodeport) 0 -}}
+{{- $gameNP = int .Values.game_nodeport -}}
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.name }}"
+spec:
+  type: {{ .Values.service_type }}
+  selector:
+    app: "{{ .Values.name }}"
+  ports:
+    - name: game-udp
+      port: {{ .Values.gamePort }}
+      targetPort: game-udp
+      protocol: UDP
+      nodePort: {{ $gameNP }}
+    - name: game-tcp
+      port: {{ .Values.gamePort }}
+      targetPort: game-tcp
+      protocol: TCP
+      nodePort: {{ $gameNP }}
+    {{- range $i, $ep := .Values.extraPorts }}
+    - name: {{ $ep.name }}
+      port: {{ $ep.port }}
+      targetPort: {{ $ep.port }}
+      protocol: {{ $ep.protocol | default "TCP" }}
+      nodePort: {{ add $gameNP (add 1 $i) }}
+    {{- end }}
