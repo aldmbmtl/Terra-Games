@@ -11,8 +11,6 @@ cpu: "2"
 memory: "4Gi"
 cpuLimit: ""
 memoryLimit: "8Gi"
-# Kuiper-consumed contract key — not rendered by this chart (no ingress).
-publicAccess: false
 idx: 0
 guid: 0
 puid: 0

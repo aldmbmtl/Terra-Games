@@ -67,11 +67,6 @@ data:
       type: string
       required: false
       default: ""
-    - name: publicAccess
-      description: "Allow public access (disable authentication)"
-      type: boolean
-      required: false
-      default: false
     - name: service_type
       description: "Service type — NodePort (high port on every node) or LoadBalancer (external IP via MetalLB/cloud LB)"
       type: select
