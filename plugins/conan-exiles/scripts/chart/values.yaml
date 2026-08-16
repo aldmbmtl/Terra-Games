@@ -33,7 +33,6 @@ terminationGracePeriodSeconds: 30
 # Game port + pinger — the Conan client queries the pinger (PORT+1 = 7778)
 # before connecting, so the Service must carry both. With NodePort type, the
 # template derives an in-range adjacent pair from the instance name
-# (game = N, pinger = N+1) so the client's +1 query lands; game_nodeport
 # overrides the auto pair (0 = auto). The query port 27015 stays browser-only
 # and unexposed (advertised ports never match nodePorts anyway).
 gamePort: 7777
@@ -69,7 +68,6 @@ update_on_start: true
 
 # NodePort override for the game port (0 = auto-derive an adjacent pair
 # from the instance name; pinger = game + 1). Pick ≤ 32766 when overriding.
-game_nodeport: 0
 
 # World storage — chart-rendered PVC (metadata fields)
 storage_class: ""

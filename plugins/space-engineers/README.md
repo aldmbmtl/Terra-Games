@@ -28,9 +28,8 @@ Exposed via NodePort/LoadBalancer Service. No ingress — pure UDP.
 - **Join**: in-game "Join IP" → `<host-ip>:<game nodePort>`. The chart auto-derives the nodePort
   from the instance name (stable across syncs) — find it with
   `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[?(@.name=="game")].nodePort}'`
-- **NodePort override**: set `game_nodeport` at launch to pin a specific port (≤ 32766); useful if
-  the auto-derived port collides — k8s rejects the apply with a clear error; rename the instance
-  or override to recover
+- **Collisions**: the auto-derived port is deterministic — if k8s rejects the apply (port already
+  in use), rename the instance to re-derive
 
 ## World provisioning (required, manual)
 
@@ -56,7 +55,6 @@ The server downloads mods referenced by the world on first start.
 | `cpu` / `memory` | `2` / `4Gi` | Pod requests — Wine + server needs headroom |
 | `cpuLimit` / `memoryLimit` | — / `8Gi` | Pod limits (empty = none) |
 | `service_type` | `NodePort` | NodePort (high port on every node) or LoadBalancer (external IP — needs MetalLB/cloud LB) |
-| `game_nodeport` | `0` | NodePort for the game port — `0` = auto-derive from instance name; pick ≤ 32766 to pin |
 | `storage_class` | required | StorageClass for the world volume |
 | `storage_size` | `20` | World volume size in Gi |
 

@@ -53,7 +53,6 @@ nodeSelector:
 
 # NodePort for the game port (0 = auto-derive from the instance name;
 # stable across syncs). Pick ≤ 32766 to pin.
-game_nodeport: 0
 
 # World storage — chart-rendered PVC (metadata fields)
 storage_class: ""

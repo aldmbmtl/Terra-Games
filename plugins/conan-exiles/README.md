@@ -42,9 +42,8 @@ exposed); revisit if upstream lands working RCON.
   across syncs), so the client's +1 pinger query lands. Find the pair:
   `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[*].nodePort}'`
   (e.g. `30500 30501` → join `192.168.70.25:30500`)
-- **NodePort override**: set `game_nodeport` at launch to pin a specific pair (≤ 32766; pinger
-  auto = +1). Useful when the auto-derived pair collides with an in-use port — k8s rejects the
-  apply with a clear error; rename the instance or override to recover
+- **Collisions**: the auto-derived pair is deterministic — if k8s rejects the apply (ports already
+  in use), rename the instance to re-derive
 - **Join (LoadBalancer)**: pick `service_type: LoadBalancer` (k3s svclb opens the ports on every
   node IP) → join `<node-ip>:7777`, pinger auto-answers at 7778
 - **Server browser visibility**: needs advertised ports reachable — LoadBalancer or hostPort;
@@ -64,7 +63,6 @@ exposed); revisit if upstream lands working RCON.
 | `cpu` / `memory` | `2` / `8Gi` | UE5 server is heavy — 8GB min, 16GB recommended |
 | `cpuLimit` / `memoryLimit` | — / — | Pod limits (empty = none) |
 | `service_type` | `NodePort` | NodePort or LoadBalancer (needs MetalLB/cloud LB) |
-| `game_nodeport` | `0` | NodePort for the game port — `0` = auto-derive adjacent pair (pinger = +1); pick ≤ 32766 to pin |
 | `storage_class` | required | StorageClass for server files + saves |
 | `storage_size` | `50` | Volume size in Gi (25GB min, 50GB recommended) |
 

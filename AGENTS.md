@@ -147,13 +147,13 @@ Run `make new-plugin` from inside the shell.
   port at **entered-port + 1** (Conan pinger, Ark-style query ports) — random per-port nodePort
   allocation breaks that, so game charts pin **adjacent pairs** (game N, secondary N+1) derived
   deterministically from `.Release.Name` (sha256 hex → sum decimal digit-runs → `mod 2767` →
-  +30000, wrap-safe). Single-port games (valheim, space-engineers, minecraft) derive just N.
-  All games expose a `game_nodeport` launch field (`0` = auto, ≤ 32766 to pin). Collisions are
-  possible (~0.4% with ~10 services); k8s rejects with a clear apply error — rename the instance
-  or pin. Reference implementations: `conan-exiles` (adjacent pair), `valheim`/`space-engineers`
-  (single port). Kuiper renders with `.Release.Name` = instance name, so the pair is stable
-  across ArgoCD syncs. When copying the hash block, keep the glue-safe `{{- end }}` ending
-  (see trim-marker quirk above).
+  +30000, wrap-safe). Single-port games (valheim, space-engineers) derive just N. There is NO
+  user-facing nodePort field — always auto-derived (user decision: the system picks it). Collisions
+  are possible (~0.4% with ~10 services); k8s rejects with a clear apply error — rename the
+  instance to re-derive. Reference implementations: `conan-exiles` (adjacent pair),
+  `valheim`/`space-engineers` (single port). Kuiper renders with `.Release.Name` = instance name,
+  so the pair is stable across ArgoCD syncs. When copying the hash block, keep the glue-safe
+  `{{- end }}` ending (see trim-marker quirk above).
 
 ## Adding a New Game Plugin — Checklist
 

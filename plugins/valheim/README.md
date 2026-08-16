@@ -25,9 +25,8 @@ it is not exposed (join-by-IP needs only the game port). No ingress — Valheim 
 - **Join**: in-game "Join IP" → `<host-ip>:<game nodePort>`. The chart auto-derives the nodePort
   from the instance name (stable across syncs) — find it with
   `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[?(@.name=="game")].nodePort}'`
-- **NodePort override**: set `game_nodeport` at launch to pin a specific port (≤ 32766); useful if
-  the auto-derived port collides — k8s rejects the apply with a clear error; rename the instance
-  or override to recover
+- **Collisions**: the auto-derived port is deterministic — if k8s rejects the apply (port already
+  in use), rename the instance to re-derive
 - **Server browser visibility**: needs the advertised port reachable — use `service_type:
   LoadBalancer` (k3s svclb opens it on every node IP) or hostPort; plain NodePort works for
   join-by-IP only
@@ -43,7 +42,6 @@ it is not exposed (join-by-IP needs only the game port). No ingress — Valheim 
 | `cpu` / `memory` | `2` / `4Gi` | Pod requests — raise memory for large worlds |
 | `cpuLimit` / `memoryLimit` | — / — | Pod limits (empty = none) |
 | `service_type` | `NodePort` | NodePort (high port on every node) or LoadBalancer (external IP — needs MetalLB/cloud LB) |
-| `game_nodeport` | `0` | NodePort for the game port — `0` = auto-derive from instance name; pick ≤ 32766 to pin |
 | `storage_class` | required | StorageClass for the world volume |
 | `storage_size` | `10` | World volume size in Gi |
 

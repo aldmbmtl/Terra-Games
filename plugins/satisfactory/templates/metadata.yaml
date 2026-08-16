@@ -98,11 +98,6 @@ data:
         - LoadBalancer
       required: false
       default: "NodePort"
-    - name: game_nodeport
-      description: "NodePort for the game port — 0 = auto-derive an adjacent pair (reliable = +1) from the instance name. Pick ≤ 32766 when overriding."
-      type: int
-      required: false
-      default: 0
     - name: storage_class
       description: "StorageClass for the server files + saves volume (required)."
       type: k8sStorageClass

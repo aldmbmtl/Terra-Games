@@ -33,9 +33,8 @@ randomly-allocated reliable nodePort. Join = `<host-ip>:<N>`, reliable channel a
   adjacent pair from the instance name (stable across syncs) — find it with
   `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[*].nodePort}'`
   (e.g. `30409 30410` → join `192.168.70.25:30409`)
-- **NodePort override**: set `game_nodeport` at launch to pin the pair (≤ 32766; reliable = +1);
-  useful on collision — k8s rejects the apply with a clear error; rename the instance or override
-  to recover
+- **Collisions**: the auto-derived pair is deterministic — if k8s rejects the apply (ports already
+  in use), rename the instance to re-derive
 - **First join**: claim the server in-game (dedicated server tab → claim + set a strong password);
   the image's warning — shutdown via the server manager's console (`quit`) saves the world;
   SIGTERM is also handled gracefully by the image (30s grace in the chart)
@@ -54,7 +53,6 @@ randomly-allocated reliable nodePort. Join = `<host-ip>:<N>`, reliable channel a
 | `cpu` / `memory` | `2` / `12Gi` | 12GB min, 16GB recommended — heavy simulation |
 | `cpuLimit` / `memoryLimit` | — / — | Pod limits (empty = none) |
 | `service_type` | `NodePort` | NodePort or LoadBalancer (needs MetalLB/cloud LB) |
-| `game_nodeport` | `0` | `0` = auto-derive adjacent pair; pick ≤ 32766 to pin |
 | `storage_class` | required | StorageClass for server files + saves |
 | `storage_size` | `25` | Volume size in Gi (25GB minimum) |
 
