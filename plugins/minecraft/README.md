@@ -44,6 +44,7 @@ start until set to `TRUE`. This is your legal acceptance.
 | `rcon_password` | — | Stored in a Secret; only used when RCON is on |
 | `cpu` / `memory` | `1` / `1Gi` | Pod requests |
 | `cpuLimit` / `memoryLimit` | — / `4Gi` | Pod limits (empty = none) |
+| `service_type` | `NodePort` | NodePort (high port on every node) or LoadBalancer (external IP — needs MetalLB/cloud LB) |
 | `storage_class` | required | StorageClass for the world volume |
 | `storage_size` | `10` | World volume size in Gi |
 

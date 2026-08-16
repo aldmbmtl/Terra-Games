@@ -28,9 +28,10 @@ the chart in `scripts/chart/` at launch time).
 
 ## Networking rules (MANDATORY)
 
-1. Game servers listen on **TCP/UDP**. Expose them via the Service:
-   - `serviceType: NodePort` (default) — high port on every node
-   - `serviceType: LoadBalancer` — external IP when the cluster has MetalLB
+1. Game servers listen on **TCP/UDP**. Expose them via the Service —
+   users pick `service_type` at launch (select field in metadata):
+   - `NodePort` (default) — high port on every node
+   - `LoadBalancer` — external IP when the cluster has MetalLB
      or a cloud load balancer
 2. **NO ingress, ever, in game charts.** nginx ingress is HTTP/HTTPS only —
    it cannot proxy raw game packets. Game charts omit the ingress template

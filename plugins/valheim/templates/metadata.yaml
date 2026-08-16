@@ -77,6 +77,14 @@ data:
       type: boolean
       required: false
       default: false
+    - name: service_type
+      description: "Service type — NodePort (high port on every node) or LoadBalancer (external IP via MetalLB/cloud LB)"
+      type: select
+      options:
+        - NodePort
+        - LoadBalancer
+      required: false
+      default: "NodePort"
     - name: storage_class
       description: "StorageClass for the world volume (required)."
       type: k8sStorageClass

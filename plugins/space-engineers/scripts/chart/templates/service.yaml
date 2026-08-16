@@ -1,7 +1,7 @@
 # Game servers listen on TCP/UDP — the Service carries the traffic directly.
 # type: NodePort (default) exposes a high port on every node;
 #       LoadBalancer allocates an external IP when the cluster has MetalLB
-#       or a cloud load balancer. Choose in values.yaml (serviceType).
+#       or a cloud load balancer. Choose at launch via the service_type field.
 # Do NOT add an ingress for the game traffic itself — nginx ingress is
 # HTTP/HTTPS only and cannot proxy raw game packets.
 apiVersion: v1
@@ -9,7 +9,7 @@ kind: Service
 metadata:
   name: "{{ .Values.name }}"
 spec:
-  type: {{ .Values.serviceType }}
+  type: {{ .Values.service_type }}
   selector:
     app: "{{ .Values.name }}"
   ports:

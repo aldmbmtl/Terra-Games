@@ -33,6 +33,7 @@ Valheim traffic is pure UDP.
 | `crossplay_enabled` | `true` | PlayFab backend — players from any platform can join |
 | `cpu` / `memory` | `2` / `4Gi` | Pod requests — raise memory for large worlds |
 | `cpuLimit` / `memoryLimit` | — / — | Pod limits (empty = none) |
+| `service_type` | `NodePort` | NodePort (high port on every node) or LoadBalancer (external IP — needs MetalLB/cloud LB) |
 | `storage_class` | required | StorageClass for the world volume |
 | `storage_size` | `10` | World volume size in Gi |
 

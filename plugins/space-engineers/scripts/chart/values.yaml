@@ -27,7 +27,7 @@ _kuiper:
 
 # --- game server settings ---
 
-serviceType: NodePort
+service_type: NodePort
 
 # Graceful shutdown — the server saves the world when stopped cleanly
 terminationGracePeriodSeconds: 60

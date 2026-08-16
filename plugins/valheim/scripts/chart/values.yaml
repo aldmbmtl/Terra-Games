@@ -27,23 +27,15 @@ _kuiper:
 
 # --- game server settings ---
 
-serviceType: NodePort
+service_type: NodePort
 
 # Graceful shutdown — Valheim saves the world on SIGTERM; keep 30s
 terminationGracePeriodSeconds: 30
 
-# Valheim uses PORT and PORT+1; the third UDP port (2458) carries extra
-# connections. All three always exposed.
+# Game port only — non-crossplay direct join uses this port's nodePort.
+# The server also binds PORT+1 (Steam query) in-container; not exposed.
 gamePort: 2456
 gameProtocol: UDP
-
-extraPorts:
-  - name: game2
-    port: 2457
-    protocol: UDP
-  - name: game3
-    port: 2458
-    protocol: UDP
 
 # Sub-paths on the game data PVC:
 #   worlds_subpath → /valheim-saves (world data)

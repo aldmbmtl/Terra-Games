@@ -147,7 +147,7 @@ Run `make new-plugin` from inside the shell.
 3. Edit `terra.yaml` — `resource_id`, `name`, `icon`, `description`, `category: Games`, game tags
    + `cluster-level`
 4. Edit `templates/metadata.yaml` — description, `fields:` schema (common set: icon/registry/repo/
-   tag/cpu/memory/cpuLimit/memoryLimit/publicAccess/storage_class/storage_size + game-specific
+   tag/cpu/memory/cpuLimit/memoryLimit/publicAccess/service_type/storage_class/storage_size + game-specific
    fields), `env_hints`
 5. Edit `scripts/chart/values.yaml` + chart templates — image, `gamePort`/`gameProtocol`,
    `extraPorts`, env (all `| quote`), probes (UDP-safe), PVC mounts + subPaths, grace period;

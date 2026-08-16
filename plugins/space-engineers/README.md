@@ -46,6 +46,7 @@ The server downloads mods referenced by the world on first start.
 | `public_ip` | — | Used by the image's own healthcheck; optional in Kubernetes (no probes) |
 | `cpu` / `memory` | `2` / `4Gi` | Pod requests — Wine + server needs headroom |
 | `cpuLimit` / `memoryLimit` | — / `8Gi` | Pod limits (empty = none) |
+| `service_type` | `NodePort` | NodePort (high port on every node) or LoadBalancer (external IP — needs MetalLB/cloud LB) |
 | `storage_class` | required | StorageClass for the world volume |
 | `storage_size` | `20` | World volume size in Gi |
 
