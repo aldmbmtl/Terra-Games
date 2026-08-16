@@ -30,7 +30,6 @@ Valheim traffic is pure UDP.
 | `server_password` | — | **Required** — stored in a Secret |
 | `world_name` | `dedicated` | Creates a new world or loads an existing one |
 | `public` | `true` | `false` hides the server from the browser (join by IP) |
-| `crossplay_enabled` | `true` | PlayFab backend — players from any platform can join |
 | `cpu` / `memory` | `2` / `4Gi` | Pod requests — raise memory for large worlds |
 | `cpuLimit` / `memoryLimit` | — / — | Pod limits (empty = none) |
 | `service_type` | `NodePort` | NodePort (high port on every node) or LoadBalancer (external IP — needs MetalLB/cloud LB) |

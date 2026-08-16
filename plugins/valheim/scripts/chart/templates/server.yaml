@@ -89,8 +89,6 @@ spec:
             # | quote protects against typed-YAML booleans from the UI.
             - name: PUBLIC
               value: {{ .Values.public | quote }}
-            - name: CROSSPLAY_ENABLED
-              value: {{ .Values.crossplay_enabled | quote }}
             - name: PUID
               value: "1000"
             - name: PGID

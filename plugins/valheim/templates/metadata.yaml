@@ -8,7 +8,7 @@ metadata:
     juno-innovations.com/workload: "Server"
 data:
   chart: "{{ .Release.Name }}-scripts-configmap"
-  description: "Valheim dedicated server (indifferentbroccoli/valheim-server-docker) — SteamCMD auto-install, PlayFab crossplay."
+  description: "Valheim dedicated server (indifferentbroccoli/valheim-server-docker) — SteamCMD auto-install, non-crossplay (direct IP join)."
   fields: |
     - name: icon
       default: "https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/valheim/assets/logo.png"
@@ -44,11 +44,6 @@ data:
       default: "dedicated"
     - name: public
       description: "Visible in the server browser (false = join by IP only)"
-      type: boolean
-      required: false
-      default: true
-    - name: crossplay_enabled
-      description: "Run on the PlayFab crossplay backend (players from any platform can join)"
       type: boolean
       required: false
       default: true

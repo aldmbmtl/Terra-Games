@@ -49,7 +49,6 @@ server_name: "valheim"
 server_password: ""
 world_name: "dedicated"
 public: true
-crossplay_enabled: true
 
 # Node pinning — the image is amd64-ONLY (its OCI index's second entry is
 # an in-toto attestation, not an arm64 build). Pods must land on amd64 nodes.

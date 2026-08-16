@@ -1,7 +1,7 @@
 resource_id: valheim
 name: Valheim Server
 icon: https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/valheim/assets/logo.png
-description: Valheim dedicated server workload (indifferentbroccoli/valheim-server-docker) — auto-installs via SteamCMD, PlayFab crossplay support.
+description: Valheim dedicated server workload (indifferentbroccoli/valheim-server-docker) — auto-installs via SteamCMD, non-crossplay (direct IP join).
 category: Games
 tags:
   - valheim
