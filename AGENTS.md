@@ -158,6 +158,18 @@ Run `make new-plugin` from inside the shell.
   `space-engineers` (single port). Kuiper renders with `.Release.Name` = instance name,
   so the pair is stable across ArgoCD syncs. When copying the hash block, keep the glue-safe
   `{{- end }}` ending (see trim-marker quirk above).
+- **Listen-on-derived-ports variant (satisfactory)** — when a client's secondary channel still
+  fails post-join even with an adjacent mapping (observed: satisfactory's reliable channel —
+  the client may use the server-ANNOUNCED port instead of entered+1), make the SERVER bind the
+  derived ports: render `GAME_PORT`/`RELIABLE_PORT` envs from the hash and use port == nodePort
+  == pod bind in the Service (the game patches its config from those envs). Announced ports are
+  then always the reachable ones — immune to both client behaviors. The hash derivation lives in
+  `scripts/chart/templates/_helpers.tpl` as a reusable `define` (satisfactory reference).
+- **Kuiper caches unpacked charts per plugin** — after pushing chart changes, the ConfigMap
+  syncs but Kuiper keeps decoding the stale cached tar (`/tmp/<hash>.tar`) for relaunches of the
+  same plugin until kuiper restarts (observed: satisfactory's Steam fix sat unapplied for an hour
+  — the ConfigMap was current, the cached chart was not). Restart the kuiper pod after pushing
+  chart changes, or launches silently run the old chart.
 
 ## Adding a New Game Plugin — Checklist
 
