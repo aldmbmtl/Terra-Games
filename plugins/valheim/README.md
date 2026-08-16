@@ -15,17 +15,19 @@ users launch instances through Hubble.
 
 | Port | Protocol | Purpose |
 |------|----------|---------|
-| 2456 | UDP | Game traffic (`PORT` env) — the only exposed port |
+| 2456 | UDP | Game traffic (`PORT` env) — join endpoint |
+| 2457 | UDP | Steam query (`PORT` + 1) — **join-critical**: the client's handshake queries it at entered-port + 1 |
 
-The server also binds 2457 (Steam query, `PORT` + 1) in-container for the server browser;
-it is not exposed (join-by-IP needs only the game port). No ingress — Valheim traffic is pure UDP.
+The chart pins an **adjacent nodePort pair** (game N, query N+1) so the +1 query lands. No
+ingress — Valheim traffic is pure UDP.
 
 ## Connecting
 
-- **Join**: in-game "Join IP" → `<host-ip>:<game nodePort>`. The chart auto-derives the nodePort
-  from the instance name (stable across syncs) — find it with
-  `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[?(@.name=="game")].nodePort}'`
-- **Collisions**: the auto-derived port is deterministic — if k8s rejects the apply (port already
+- **Join**: in-game "Join IP" → `<host-ip>:<game nodePort>`. The chart auto-derives the adjacent
+  pair from the instance name (stable across syncs) — find it with
+  `kubectl get svc <name> -n <namespace> -o jsonpath='{.spec.ports[*].nodePort}'`
+  (e.g. `31710 31711` → join `192.168.70.25:31710`, query answers at 31711)
+- **Collisions**: the auto-derived pair is deterministic — if k8s rejects the apply (ports already
   in use), rename the instance to re-derive
 - **Server browser visibility**: needs the advertised port reachable — use `service_type:
   LoadBalancer` (k3s svclb opens it on every node IP) or hostPort; plain NodePort works for

@@ -30,10 +30,17 @@ service_type: NodePort
 # Graceful shutdown — Valheim saves the world on SIGTERM; keep 30s
 terminationGracePeriodSeconds: 30
 
-# Game port only — non-crossplay direct join uses this port's nodePort.
-# The server also binds PORT+1 (Steam query) in-container; not exposed.
+# Game port + Steam query (PORT+1). Non-crossplay direct join REQUIRES the
+# query port reachable — the client's handshake queries it at entered+1,
+# so the chart pins an adjacent nodePort pair (N / N+1). The original repo
+# always maps 2456+2457; the earlier single-port trim broke joins.
 gamePort: 2456
 gameProtocol: UDP
+
+extraPorts:
+  - name: query
+    port: 2457
+    protocol: UDP
 
 # Sub-paths on the game data PVC:
 #   worlds_subpath → /valheim-saves (world data)

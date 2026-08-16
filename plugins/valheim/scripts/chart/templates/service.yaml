@@ -5,12 +5,14 @@
 # Do NOT add an ingress for the game traffic itself — nginx ingress is
 # HTTP/HTTPS only and cannot proxy raw game packets.
 #
-# NodePort derivation: deterministic from the instance name (stable across
-# ArgoCD syncs / Kuiper re-renders) so the join endpoint never churns. The
-# sha256 hex's decimal digit-runs are summed and folded into the node-port
-# range (30000..32766). No user override — always auto-derived.
-# Single-port variant — valheim's join needs no adjacent-pair
-# pinger mapping; multi-port games that query port+1 see conan-exiles.
+# NodePort pair derivation: the Valheim client queries the Steam status
+# port at entered-port + 1 (non-crossplay joins), so game (2456) and query
+# (2457) MUST be pinned to an adjacent pair (N / N+1) — k8s would otherwise
+# allocate random, unrelated nodePorts and the query would miss. The pair
+# is derived deterministically from the instance name (stable across
+# ArgoCD syncs / Kuiper re-renders): sha256 hex → sum decimal digit-runs →
+# mod 2767 → +30000, wrap-safe. No user override — always auto-derived.
+# extraPorts get N+1, N+2, ... in order.
 {{- $sum := 0 -}}
 {{- range $i, $run := regexFindAll "[0-9]+" (sha256sum .Release.Name) -1 -}}
 {{- $sum = add $sum (int $run) -}}
@@ -30,3 +32,10 @@ spec:
       targetPort: game
       protocol: {{ .Values.gameProtocol }}
       nodePort: {{ $autoNP }}
+    {{- range $i, $ep := .Values.extraPorts }}
+    - name: {{ $ep.name }}
+      port: {{ $ep.port }}
+      targetPort: {{ $ep.port }}
+      protocol: {{ $ep.protocol | default "TCP" }}
+      nodePort: {{ add $autoNP (add 1 $i) }}
+    {{- end }}
