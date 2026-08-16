@@ -1,0 +1,57 @@
+# These values are populated by Kuiper at workload launch time from the
+# fields defined in templates/metadata.yaml. They must match field names
+# exactly (dual-defaults parity: metadata defaults override these).
+name: PLUGIN
+user:
+registry: docker.io
+repo: PLUGIN
+tag: latest
+group:
+cpu: "1"
+memory: "1Gi"
+cpuLimit: ""
+memoryLimit: ""
+# Kuiper-consumed contract key — not rendered by this chart (no ingress).
+publicAccess: false
+idx: 0
+guid: 0
+puid: 0
+host:
+pullSecret:
+session:
+volumeMounts: []
+volumes: []
+env: []
+plugins: []
+_kuiper:
+
+# --- game server settings (per-game overrides live here) ---
+
+# How the game server is exposed. Games listen on TCP/UDP — NOT HTTP — so
+# the Service must be a NodePort (default) or LoadBalancer (MetalLB/cloud).
+# No ingress: nginx ingress is HTTP/HTTPS only and cannot proxy raw game
+# packets. Users pick this at launch via the service_type metadata field.
+service_type: NodePort
+
+# Grace period for graceful shutdown (world saves on SIGTERM).
+# Per-game override: Space Engineers 60s, Minecraft 60s, Valheim 30s.
+terminationGracePeriodSeconds: 30
+
+# Primary game port clients connect to
+gamePort: 25565
+gameProtocol: TCP
+
+# Additional ports — add more entries as needed (e.g. RCON, query).
+#   - name: rcon
+#     port: 25575
+#     protocol: TCP
+extraPorts: []
+
+# Node pinning — set kubernetes.io/arch when the game image is single-arch
+# (verify: Docker Hub tag → architectures). Empty = no pinning.
+nodeSelector: {}
+
+# World storage — chart-rendered PVC (storage_class + storage_size come
+# from the metadata fields schema)
+storage_class: ""
+storage_size: 10
