@@ -1,0 +1,13 @@
+resource_id: conan-exiles
+name: Conan Exiles Enhanced Server
+icon: https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/conan-exiles/assets/logo.png
+description: Conan Exiles Enhanced dedicated server workload (indifferentbroccoli image) — DepotDownloader auto-install, Steam backend, direct IP join.
+category: Games
+tags:
+  - conan-exiles
+  - survival
+  - ue5
+  - cluster-level
+# Workload template — all configuration happens at launch time via the
+# fields schema in templates/metadata.yaml (Genesis workload UI → Kuiper).
+fields: []

@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Release.Name }}-terra-metadata"
+  labels:
+    kuiper.juno-innovations.com/chart: "{{ .Release.Name }}-scripts-configmap"
+  annotations:
+    juno-innovations.com/workload: "Server"
+data:
+  chart: "{{ .Release.Name }}-scripts-configmap"
+  description: "Conan Exiles Enhanced dedicated server (indifferentbroccoli image) — UE5, DepotDownloader auto-install, non-crossplay (direct IP join)."
+  fields: |
+    - name: icon
+      default: "https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/conan-exiles/assets/logo.png"
+    - name: registry
+      description: "Container registry"
+      type: string
+      required: true
+      default: "docker.io"
+    - name: repo
+      description: "Image repository"
+      type: string
+      required: true
+      default: "indifferentbroccoli/conan-exiles-enhanced-server-docker"
+    - name: tag
+      description: "Image tag"
+      type: string
+      required: true
+      default: "latest"
+    - name: server_name
+      description: "Name shown in the server browser"
+      type: string
+      required: true
+      default: "Conan Exiles Enhanced Server"
+    - name: server_password
+      description: "Server password (stored in a Secret; leave blank for a public server)"
+      type: string
+      required: false
+      sensitive: true
+    - name: admin_password
+      description: "In-game admin password (stored in a Secret)"
+      type: string
+      required: false
+      sensitive: true
+    - name: rcon_password
+      description: "RCON password (stored in a Secret) — when set, exposes TCP port 25575"
+      type: string
+      required: false
+      sensitive: true
+    - name: max_players
+      description: "Maximum number of players"
+      type: int
+      required: false
+      default: 40
+    - name: mods
+      description: "Comma-separated Steam Workshop mod IDs (e.g. 880454836,1159180273)"
+      type: string
+      required: false
+      default: ""
+    - name: update_on_start
+      description: "Validate/download server files on startup (false = skip, faster boots)"
+      type: boolean
+      required: false
+      default: true
+    - name: cpu
+      description: "CPU cores (request)"
+      type: string
+      required: false
+      default: "2"
+    - name: memory
+      description: "Memory request — UE5 server is heavy (8GB min, 16GB recommended)"
+      type: string
+      required: false
+      default: "8Gi"
+    - name: cpuLimit
+      description: "CPU limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: memoryLimit
+      description: "Memory limit (empty = no limit)"
+      type: string
+      required: false
+      default: ""
+    - name: service_type
+      description: "Service type — NodePort (high port on every node) or LoadBalancer (external IP via MetalLB/cloud LB)"
+      type: select
+      options:
+        - NodePort
+        - LoadBalancer
+      required: false
+      default: "NodePort"
+    - name: storage_class
+      description: "StorageClass for the server files + saves volume (required)."
+      type: k8sStorageClass
+      required: true
+    - name: storage_size
+      description: "Server volume size in Gi (25GB min, 50GB recommended)."
+      type: int
+      required: false
+      default: 50
+  env_hints: |
+    - name: UPDATE_ON_START
+      description: "false skips file validation on startup (faster restarts)"
+    - name: MODS
+      description: "Comma-separated Steam Workshop mod IDs"

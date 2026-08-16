@@ -22,8 +22,9 @@ omit the ingress template entirely. See [AGENTS.md](AGENTS.md) for the full rule
 | Plugin | Description | Ports | Docs |
 |--------|-------------|-------|------|
 | Minecraft Server (Java) | itzg/minecraft-server — vanilla, Paper, Forge, Fabric, Spigot or Bukkit, auto-installs on first boot | 25565 TCP (+ 25575 TCP RCON when enabled) | [README](plugins/minecraft/README.md) |
-| Valheim Server | indifferentbroccoli image — SteamCMD auto-install, PlayFab crossplay, world saves on volume | 2456–2458 UDP | [README](plugins/valheim/README.md) |
+| Valheim Server | indifferentbroccoli image — SteamCMD auto-install, Steam backend (crossplay off by default), world saves on volume | 2456 UDP | [README](plugins/valheim/README.md) |
 | Space Engineers Server | Devidian image — Windows dedicated server under Wine; world provisioned manually | 27016 UDP | [README](plugins/space-engineers/README.md) |
+| Conan Exiles Enhanced Server | broccoli UE5 image — DepotDownloader auto-install, Steam backend, direct IP join | 7777 UDP (+ 25575 TCP RCON when enabled) | [README](plugins/conan-exiles/README.md) |
 
 ## Contributing a Plugin
 

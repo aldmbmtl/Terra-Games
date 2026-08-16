@@ -1,0 +1,66 @@
+# These values are populated by Kuiper at workload launch time from the
+# fields defined in templates/metadata.yaml. They must match field names
+# exactly (dual-defaults parity: metadata defaults override these).
+name: conan-exiles
+user:
+registry: docker.io
+repo: indifferentbroccoli/conan-exiles-enhanced-server-docker
+tag: latest
+group:
+cpu: "2"
+memory: "8Gi"
+cpuLimit: ""
+memoryLimit: ""
+idx: 0
+guid: 0
+puid: 1000
+host:
+pullSecret:
+session:
+volumeMounts: []
+volumes: []
+env: []
+plugins: []
+_kuiper:
+
+# --- game server settings ---
+
+service_type: NodePort
+
+# Graceful shutdown — Conan saves on SIGTERM; keep 30s
+terminationGracePeriodSeconds: 30
+
+# Game port only — direct join uses this port's nodePort. The server also
+# binds PORT+1 (7778, pinger) and the query port 27015 in-container for the
+# Steam browser; those are browser-only and not exposed (advertised ports
+# never match NodePorts anyway).
+gamePort: 7777
+gameProtocol: UDP
+
+# RCON is NOT in extraPorts — the server always listens on 25575 TCP
+# (RconEnabled=1 hardcoded by the image), but the Service/container port
+# render only when rcon_password is set: blank-password RCON on an open
+# nodePort is an admin hole.
+extraPorts: []
+
+# Node pinning — the image is amd64-ONLY (its OCI index's second entry is
+# an in-toto attestation, not an arm64 build). Pods must land on amd64 nodes.
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+# Sub-path on the game data PVC → /home/steam/server-files (files + saves + config)
+server_files_subpath: "conan-exiles"
+
+# --- launch-time field defaults (mirror metadata.yaml) ---
+
+server_name: "Conan Exiles Enhanced Server"
+server_password: ""
+admin_password: ""
+rcon_password: ""
+max_players: 40
+mods: ""
+update_on_start: true
+
+# World storage — chart-rendered PVC (metadata fields)
+storage_class: ""
+storage_size: 50
