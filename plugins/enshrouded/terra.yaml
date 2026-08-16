@@ -1,0 +1,13 @@
+resource_id: enshrouded
+name: Enshrouded Server
+icon: https://raw.githubusercontent.com/aldmbmtl/Terra-Games/main/plugins/enshrouded/assets/logo.png
+description: Enshrouded dedicated server workload (indifferentbroccoli image) — Windows server under Wine/Proton, SteamCMD auto-install, direct IP join.
+category: Games
+tags:
+  - enshrouded
+  - survival
+  - rpg
+  - cluster-level
+# Workload template — all configuration happens at launch time via the
+# fields schema in templates/metadata.yaml (Genesis workload UI → Kuiper).
+fields: []

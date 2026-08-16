@@ -1,0 +1,4 @@
+apiVersion: v1
+description: enshrouded workload template
+name: enshrouded
+version: 0.0.3

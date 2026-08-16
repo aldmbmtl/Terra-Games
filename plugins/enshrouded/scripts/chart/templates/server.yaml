@@ -1,0 +1,168 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Values.name }}"
+  annotations:
+    juno-innovations.com/workload: "Server"
+  labels:
+    app: "{{ .Values.name }}"
+spec:
+  replicas: 1
+  serviceName: "{{ .Values.name }}"
+  selector:
+    matchLabels:
+      app: "{{ .Values.name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Values.name }}"
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      automountServiceAccountToken: false
+      hostname: "{{ .Values.name }}"
+
+      # Image runs as uid/gid 1000 — group-writable volume access
+      securityContext:
+        fsGroup: 1000
+
+      {{- if .Values.pullSecret }}
+      imagePullSecrets:
+        - name: "{{ .Values.pullSecret }}"
+      {{- end }}
+
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+
+      containers:
+        - name: enshrouded
+          imagePullPolicy: IfNotPresent
+          image: "{{ .Values.registry }}/{{ .Values.repo }}:{{ .Values.tag }}"
+          ports:
+            - containerPort: {{ .Values.gamePort }}
+              name: game
+              protocol: {{ .Values.gameProtocol }}
+            {{- range .Values.extraPorts }}
+            - containerPort: {{ .port }}
+              name: {{ .name }}
+              protocol: {{ .protocol | default "TCP" }}
+            {{- end }}
+          env:
+            - name: JUNO_WORKSTATION
+              value: "{{ .Values.name }}"
+            - name: JUNO_PROJECT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JUNO_WORKSPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: JUNO_ENVIRONMENT
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: USER
+              value: "{{ .Values.user }}"
+            - name: HOME
+              value: "/home/{{ .Values.user }}"
+            - name: UID
+              value: "{{ .Values.puid }}"
+            - name: GID
+              value: "{{ .Values.guid }}"
+            - name: SERVER_NAME
+              value: {{ .Values.server_name | quote }}
+            # The image patches enshrouded_server.json with the query port;
+            # the game port (15636) stays the game's default.
+            - name: QUERY_PORT
+              value: "15637"
+            - name: MAX_PLAYERS
+              value: {{ .Values.max_players | quote }}
+            - name: UPDATE_ON_START
+              value: {{ .Values.update_on_start | quote }}
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            {{- if .Values.server_password }}
+            - name: SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Values.name }}-secrets"
+                  key: SERVER_PASSWORD
+            {{- end }}
+            {{- range .Values.env }}
+            - name: {{ .name | quote }}
+              value: {{ .value | quote }}
+            {{- end }}
+          # UDP-only game (Windows server under Wine) — no tcpSocket target.
+          # exec probe checks the wine-hosted process; bracketed pattern
+          # prevents the probe's own shell from matching itself. First boot
+          # downloads the Windows server + wine setup (large): 10-minute
+          # startup budget.
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "pgrep -f '[e]nshrouded_server' || ps aux | grep -q '[e]nshrouded_server'"
+            initialDelaySeconds: 10
+            failureThreshold: 120
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "pgrep -f '[e]nshrouded_server' || ps aux | grep -q '[e]nshrouded_server'"
+            failureThreshold: 6
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "{{ .Values.cpu }}"
+              memory: "{{ .Values.memory }}"
+            {{- if or .Values.cpuLimit .Values.memoryLimit }}
+            limits:
+              {{- if .Values.cpuLimit }}
+              cpu: "{{ .Values.cpuLimit }}"
+              {{- end }}
+              {{- if .Values.memoryLimit }}
+              memory: "{{ .Values.memoryLimit }}"
+              {{- end }}
+            {{- end }}
+          volumeMounts:
+            - mountPath: /dev/shm
+              name: shm
+            - name: data
+              mountPath: /home/steam/enshrouded
+              subPath: {{ .Values.server_files_subpath }}
+            {{- if .Values.volumeMounts }}
+            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- end }}
+            {{- if .Values.plugins }}
+            {{- range .Values.plugins }}
+            - name: {{ .name | quote }}
+              subPath: {{ .file | quote }}
+              mountPath: "/etc/helios/init.d/{{ .name }}/{{ .file }}"
+            {{- end }}
+            {{- end }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: "{{ .Values.name }}-data"
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi
+        {{- if .Values.volumeMounts }}
+        {{- toYaml .Values.volumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.plugins }}
+        {{- range .Values.plugins }}
+        - name: {{ .name | quote }}
+          configMap:
+            name: {{ .config | quote }}
+            defaultMode: 0777
+        {{- end }}
+        {{- end }}

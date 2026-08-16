@@ -1,0 +1,63 @@
+# These values are populated by Kuiper at workload launch time from the
+# fields defined in templates/metadata.yaml. They must match field names
+# exactly (dual-defaults parity: metadata defaults override these).
+name: enshrouded
+user:
+registry: docker.io
+repo: indifferentbroccoli/enshrouded-server-docker
+tag: latest
+group:
+cpu: "2"
+memory: "8Gi"
+cpuLimit: ""
+memoryLimit: ""
+idx: 0
+guid: 0
+puid: 1000
+host:
+pullSecret:
+session:
+volumeMounts: []
+volumes: []
+env: []
+plugins: []
+_kuiper:
+
+# --- game server settings ---
+
+service_type: NodePort
+
+# Graceful shutdown — the image's term handling saves on SIGTERM; keep 30s
+terminationGracePeriodSeconds: 30
+
+# Game port (UDP) + query port. The Enshrouded client queries the server at
+# entered-port + 1, so game and query MUST be pinned to an adjacent nodePort
+# pair (N / N+1) — see the template header in service.yaml. Note: the
+# upstream compose publishes ONLY the query port (15637); direct joins need
+# the game port too (15636), which is the server's unpatched default.
+gamePort: 15636
+gameProtocol: UDP
+
+extraPorts:
+  - name: query
+    port: 15637
+    protocol: UDP
+
+# Node pinning — the image is amd64-ONLY (its OCI index's second entry is
+# an in-toto attestation, not an arm64 build). Pods must land on amd64 nodes.
+nodeSelector:
+  kubernetes.io/arch: amd64
+
+# Sub-path on the game data PVC → /home/steam/enshrouded (files + saves)
+server_files_subpath: "enshrouded"
+
+# --- launch-time field defaults (mirror metadata.yaml) ---
+
+server_name: "Enshrouded Server"
+server_password: ""
+max_players: 12
+update_on_start: true
+
+# World storage — chart-rendered PVC (metadata fields)
+storage_class: ""
+storage_size: 40

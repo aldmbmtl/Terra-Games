@@ -1,0 +1,41 @@
+# Game servers listen on TCP/UDP — the Service carries the traffic directly.
+# type: NodePort (default) exposes a high port on every node;
+#       LoadBalancer allocates an external IP when the cluster has MetalLB
+#       or a cloud load balancer. Choose at launch via the service_type field.
+# Do NOT add an ingress for the game traffic itself — nginx ingress is
+# HTTP/HTTPS only and cannot proxy raw game packets.
+#
+# NodePort pair derivation: the Enshrouded client queries the server at
+# entered-port + 1, so game (15636) and query (15637) MUST be pinned to an
+# adjacent pair (N / N+1) — k8s would otherwise allocate random, unrelated
+# nodePorts and the query would miss. The pair is derived deterministically
+# from the instance name (stable across ArgoCD syncs / Kuiper re-renders):
+# sha256 hex → sum decimal digit-runs → mod 2767 → +30000, wrap-safe.
+# No user override — always auto-derived. extraPorts get N+1, N+2, ...
+# in order.
+{{- $sum := 0 -}}
+{{- range $i, $run := regexFindAll "[0-9]+" (sha256sum .Release.Name) -1 -}}
+{{- $sum = add $sum (int $run) -}}
+{{- end -}}
+{{- $autoNP := add 30000 (mod $sum 2767) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Values.name }}"
+spec:
+  type: {{ .Values.service_type }}
+  selector:
+    app: "{{ .Values.name }}"
+  ports:
+    - name: game
+      port: {{ .Values.gamePort }}
+      targetPort: game
+      protocol: {{ .Values.gameProtocol }}
+      nodePort: {{ $autoNP }}
+    {{- range $i, $ep := .Values.extraPorts }}
+    - name: {{ $ep.name }}
+      port: {{ $ep.port }}
+      targetPort: {{ $ep.port }}
+      protocol: {{ $ep.protocol | default "TCP" }}
+      nodePort: {{ add $autoNP (add 1 $i) }}
+    {{- end }}
