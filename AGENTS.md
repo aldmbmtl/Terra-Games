@@ -133,6 +133,13 @@ Run `make new-plugin` from inside the shell.
   value; expected string; got bool`. Options in the metadata schema are quoted strings — the bool
   appears at render time, not in the schema. Use `| toString` before string filters, or pick
   non-boolean option tokens.
+- **`-}}` trim markers glue the next literal onto the previous line** — a template block ending in
+  `-}}` followed by a literal line (e.g. `apiVersion: v1`) joins them; if the previous text is a
+  `#` comment, the whole line becomes a comment and the resource silently loses its `apiVersion`.
+  `helm lint`/`helm template` stay green (the YAML is still valid); Kuiper's `create_from_yaml`
+  blows up with `KeyError: 'apiVersion'`. When a template block precedes a literal line, drop the
+  trailing `-` on the final action (`{{- end }}`), and verify every rendered document parses as a
+  dict with `apiVersion` (e.g. `yaml.safe_load_all`).
 - **Ingress never hosts game ports** — if a future game ships an HTTP dashboard AND game traffic,
   the dashboard would get its own ingress; the game ports still go through the
   NodePort/LoadBalancer Service. Two different mechanisms, never mixed in one resource.

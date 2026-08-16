@@ -21,7 +21,7 @@
 {{- $gameNP := $autoNP -}}
 {{- if gt (int .Values.game_nodeport) 0 -}}
 {{- $gameNP = int .Values.game_nodeport -}}
-{{- end -}}
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
