@@ -23,15 +23,16 @@ users launch instances through Hubble.
 | 7777 | UDP | Game traffic (`PORT`) — join endpoint | **Always** |
 | 7778 | UDP | Pinger (`PORT` + 1) — server browser | No (browser-only) |
 | 27015 | UDP | Steam query (`QUERY_PORT`) — server browser | No (browser-only) |
-| 25575 | TCP | RCON (always listening in-container) | **Only when `rcon_password` is set** |
+| 25575 | TCP | RCON (not observed listening in the Enhanced build) | **Only when `rcon_password` is set** |
 
 The browser-only ports (7778/27015) are deliberately unexposed: the Steam browser pings the
 server's *advertised* ports, which never match NodePort mappings — exposing them through the
 Service wouldn't help the browser anyway. Direct join goes through 7777's nodePort.
 
-**RCON is gated on a password on purpose**: the image hardcodes `RconEnabled=1`, so the server
-always listens on 25575 — exposing it with a blank password on an open nodePort is an admin hole.
-Set `rcon_password` to expose it.
+**RCON is gated on a password**: the image writes `RconEnabled=1`, but the UE5 Enhanced build was
+observed NOT listening on 25575 in a live launch (connection refused) — RCON may not be available
+in the Enhanced image at all. The exposure renders only when `rcon_password` is set (unset = not
+exposed); revisit if upstream lands working RCON.
 
 ## Connecting
 
@@ -49,7 +50,7 @@ Set `rcon_password` to expose it.
 | `server_name` | `Conan Exiles Enhanced Server` | Shown in the server browser |
 | `server_password` | — | Stored in a Secret; blank = public server |
 | `admin_password` | — | In-game admin password (Secret) |
-| `rcon_password` | — | RCON password (Secret) — **gates the 25575 TCP exposure** |
+| `rcon_password` | — | RCON password (Secret) — gates the 25575 TCP exposure (may not be listening in Enhanced — revisit upstream) |
 | `max_players` | `40` | |
 | `mods` | — | Comma-separated Steam Workshop IDs (e.g. `880454836,1159180273`) |
 | `update_on_start` | `true` | `false` skips file validation on startup (faster restarts) |
@@ -70,6 +71,6 @@ Server runs as uid/gid 1000 (`fsGroup: 1000`).
 - First boot runs DepotDownloader (25-50GB download) — the startup probe allows 10 minutes;
   subsequent boots are fast unless `update_on_start` revalidates
 - UE5 server is RAM-hungry: start at 8Gi, raise `memory` for large maps/mods
-- RCON with blank `rcon_password` stays unexposed but IS listening in-container — anyone with
-  pod access could RCON in; set a password for any real deployment
+- RCON: image writes `RconEnabled=1` but the Enhanced build was observed not binding 25575 —
+  the gated exposure is inert until upstream ships working RCON
 - amd64-only image — arm64 nodes won't schedule this workload

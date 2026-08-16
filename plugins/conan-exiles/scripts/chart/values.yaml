@@ -37,10 +37,11 @@ terminationGracePeriodSeconds: 30
 gamePort: 7777
 gameProtocol: UDP
 
-# RCON is NOT in extraPorts — the server always listens on 25575 TCP
-# (RconEnabled=1 hardcoded by the image), but the Service/container port
-# render only when rcon_password is set: blank-password RCON on an open
-# nodePort is an admin hole.
+# RCON is NOT in extraPorts — the image writes RconEnabled=1, but the UE5
+# Enhanced build was observed NOT listening on 25575 (connection refused on
+# a live launch). The Service/container port render only when rcon_password
+# is set, keeping the exposure gated and harmless when unset. Revisit if
+# upstream lands working RCON.
 extraPorts: []
 
 # Node pinning — the image is amd64-ONLY (its OCI index's second entry is

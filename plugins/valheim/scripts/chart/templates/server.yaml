@@ -105,7 +105,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - "pgrep -f valheim_server || ps aux | grep -q '[v]alheim_server'"
+                - "pgrep -f '[v]alheim_server' || ps aux | grep -q '[v]alheim_server'"
             initialDelaySeconds: 10
             failureThreshold: 120
             periodSeconds: 5

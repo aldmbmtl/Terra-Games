@@ -114,19 +114,27 @@ spec:
             - name: {{ .name | quote }}
               value: {{ .value | quote }}
             {{- end }}
-          # RCON always listens in-container (RconEnabled=1 hardcoded by the
-          # image) — tcpSocket probes against it work regardless of Service
-          # exposure. First boot runs DepotDownloader (large download):
-          # 10-minute startup budget.
+          # RCON is NOT a reliable probe target: the image writes
+          # RconEnabled=1, but the UE5 Enhanced build was observed NOT
+          # binding 25575 (connection refused on a live launch). exec probe
+          # checks the verified binary name instead. Bracketed patterns
+          # prevent the probe's own shell from matching itself. First boot
+          # runs DepotDownloader (large download): 10-minute startup budget.
           startupProbe:
-            tcpSocket:
-              port: 25575
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "pgrep -f '[C]onanSandboxServer-Linux-Shipping' || ps aux | grep -q '[C]onanSandboxServer-Linux-Shipping'"
             initialDelaySeconds: 10
             failureThreshold: 120
             periodSeconds: 5
           livenessProbe:
-            tcpSocket:
-              port: 25575
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "pgrep -f '[C]onanSandboxServer-Linux-Shipping' || ps aux | grep -q '[C]onanSandboxServer-Linux-Shipping'"
             failureThreshold: 6
             periodSeconds: 30
           resources:

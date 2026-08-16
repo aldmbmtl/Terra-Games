@@ -1,4 +1,4 @@
 apiVersion: v1
 description: conan-exiles workload template
 name: conan-exiles
-version: 0.0.3
+version: 0.0.4
