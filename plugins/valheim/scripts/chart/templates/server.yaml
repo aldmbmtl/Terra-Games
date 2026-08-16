@@ -89,6 +89,12 @@ spec:
             # | quote protects against typed-YAML booleans from the UI.
             - name: PUBLIC
               value: {{ .Values.public | quote }}
+            # The image's Dockerfile ENV defaults CROSSPLAY_ENABLED=true —
+            # OMITTING this env silently re-enables PlayFab/crossplay (the
+            # server registers with PlayFab and direct IP joins stop
+            # working). Set explicitly to force non-crossplay direct join.
+            - name: CROSSPLAY_ENABLED
+              value: "false"
             - name: PUID
               value: "1000"
             - name: PGID

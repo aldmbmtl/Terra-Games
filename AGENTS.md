@@ -133,6 +133,10 @@ Run `make new-plugin` from inside the shell.
   value; expected string; got bool`. Options in the metadata schema are quoted strings — the bool
   appears at render time, not in the schema. Use `| toString` before string filters, or pick
   non-boolean option tokens.
+- **Omitting an env the image defaults falls back to the image default** — removing an env var
+  from the chart does NOT disable what the image's Dockerfile `ENV` bakes in (observed: valheim's
+  `CROSSPLAY_ENABLED=true` survived "removal" — the server kept registering with PlayFab and
+  direct IP joins stopped working). To truly disable, set the env explicitly (`"false"`).
 - **`-}}` trim markers glue the next literal onto the previous line** — a template block ending in
   `-}}` followed by a literal line (e.g. `apiVersion: v1`) joins them; if the previous text is a
   `#` comment, the whole line becomes a comment and the resource silently loses its `apiVersion`.
