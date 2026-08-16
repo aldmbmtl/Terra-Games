@@ -90,6 +90,12 @@ spec:
               value: {{ .Values.auto_save_on_disconnect | quote }}
             - name: GAME_MANIFEST
               value: {{ .Values.game_manifest | quote }}
+            # The image defaults this to Undefined, which leaves the server
+            # with NO online subsystem (OSS: LoadSubsystemModule([None])
+            # failed) — every join dies with ConnectionTimeout ~6s after
+            # login. EOS is the working mode for dedicated servers.
+            - name: PREFERRED_ONLINE_INTEGRATION_MODE
+              value: "EOS"
             - name: PUID
               value: "1000"
             - name: PGID
